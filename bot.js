@@ -1,11 +1,17 @@
+const http = require('http');
 const mineflayer = require('mineflayer');
+
+http.createServer((req, res) => {
+  res.write("Bot is alive!");
+  res.end();
+}).listen(process.env.PORT || 8080);
 
 const BOT_NAMES = ['Akhlys','Eros','Gaia'];
 
 const CONFIG = {
-  host: 'pe.notmc.net',
+  host: 'notmc.net',
   port: 25565,
-  version: '1.21.8',
+  version: '1.21.1',
   auth: 'offline',
   password: 'hung2312',
   pmPassword: 'spawn',
