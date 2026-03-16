@@ -11,7 +11,7 @@ const BOT_NAMES = ['Akhlys','Eros','Gaia'];
 const CONFIG = {
   host: 'notmc.net',
   port: 25565,
-  version: '1.21.1',
+  version: '1.21.4',
   auth: 'offline',
   password: 'hung2312',
   pmPassword: 'spawn',
@@ -146,6 +146,20 @@ function createBot(name) {
 
       if (password !== CONFIG.pmPassword) {
         log(name, `[PM] Sai mật khẩu từ ${sender}`);
+        return;
+      }
+
+      if (command === 'dropkey') {
+        const items = bot.inventory.items().filter(item => item.name.includes('tripwire_hook'));
+        if (items.length === 0) {
+          log(name, `[PM] Không có tripwire hook`);
+          return;
+        }
+        for (const item of items) {
+          await bot.tossStack(item);
+          await sleep(200);
+        }
+        log(name, `[PM] Đã drop ${items.length} tripwire hook`);
         return;
       }
 
