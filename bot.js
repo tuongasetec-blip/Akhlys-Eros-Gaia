@@ -9,7 +9,7 @@ http.createServer((req, res) => {
 const BOT_NAMES = ['Akhlys','Eros','Gaia'];
 
 const CONFIG = {
-  host: 'notmc.net',
+  host: 'pe.notmc.net',
   port: 25565,
   version: '1.21.4',
   auth: 'offline',
