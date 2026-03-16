@@ -43,7 +43,6 @@ function createBot(name) {
   bot.setMaxListeners(50);
   activeBots[name] = bot;
 
-  let initialized = false;
   let isCheckingIn = false;
   let msgBuffer = [];
   let bufferTimer = null;
@@ -103,7 +102,7 @@ function createBot(name) {
     const clean = msg.replace(/§[0-9a-fklmnor]/g, '').toLowerCase();
     log(name, msg);
 
-    if (!initialized && (clean.includes('[thông báo]') || clean.includes('lobby'))) {
+    if (clean.includes('[thông báo]')) {
       setTimeout(() => bot.chat('/server earth'), 5000);
     }
 
@@ -162,7 +161,6 @@ function createBot(name) {
       bot.chat(`/login ${CONFIG.password}`);
       setTimeout(() => {
         bot.chat('/server earth');
-        initialized = true;
       }, 2000);
     }, 2000);
   });
