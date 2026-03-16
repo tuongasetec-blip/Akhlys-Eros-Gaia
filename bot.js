@@ -155,11 +155,13 @@ function createBot(name) {
           log(name, `[PM] Không có tripwire hook`);
           return;
         }
-        for (const item of items) {
-          await bot.tossStack(item);
-          await sleep(200);
-        }
-        log(name, `[PM] Đã drop ${items.length} tripwire hook`);
+        (async () => {
+          for (const item of items) {
+            await bot.tossStack(item);
+            await sleep(200);
+          }
+          log(name, `[PM] Đã drop ${items.length} tripwire hook`);
+        })();
         return;
       }
 
