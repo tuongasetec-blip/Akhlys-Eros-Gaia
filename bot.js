@@ -36,7 +36,6 @@ function createBot(name) {
     username: name,
     version: CONFIG.version,
     auth: CONFIG.auth,
-    viewDistance: 'tiny',
     checkTimeoutInterval: 90000,
   });
 
