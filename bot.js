@@ -11,13 +11,14 @@ const BOT_NAMES = ['Akhlys','Eros','Gaia'];
 const CONFIG = {
   host: 'pe.notmc.net',
   port: 25565,
-  version: '1.21.4',
+  version: '1.21.1',
   auth: 'offline',
   password: 'hung2312',
   pmPassword: 'spawn',
   reconnectDelay: 5000,
   joinDelay: 3000,
   maxAttempts: 30,
+  checkInEveryN: 6,
 };
 
 const ALLOWED_USERS = ['Hypnos','GHypnos','Spelas','DreamMask_','Gzues'];
@@ -45,6 +46,7 @@ function createBot(name) {
   let isCheckingIn = false;
   let msgBuffer = [];
   let bufferTimer = null;
+  let checkInCount = 0;
 
   async function doCheckIn() {
     if (isCheckingIn) return;
@@ -101,12 +103,19 @@ function createBot(name) {
     const clean = msg.replace(/§[0-9a-fklmnor]/g, '').toLowerCase();
     log(name, msg);
 
-    if (clean.includes('[thông báo]')) {
+    if (msg.includes('[THÔNG BÁO]')) {
       setTimeout(() => bot.chat('/server earth'), 5000);
     }
 
     if (clean.includes('chưa nhận hết phần thưởng')) {
-      setTimeout(() => doCheckIn(), Math.random() * 5000);
+      checkInCount++;
+      log(name, `[ĐIỂM DANH] Thông báo ${checkInCount}/${CONFIG.checkInEveryN}...`);
+
+      if (checkInCount >= CONFIG.checkInEveryN) {
+        checkInCount = 0;
+        log(name, `[ĐIỂM DANH] Đủ ${CONFIG.checkInEveryN} lần, bắt đầu điểm danh!`);
+        setTimeout(() => doCheckIn(), Math.random() * 5000);
+      }
     }
 
     const isFromAllowedUser = ALLOWED_USERS.some(u => msg.includes(u));
