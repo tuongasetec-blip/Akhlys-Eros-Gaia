@@ -1,5 +1,6 @@
 const http = require('http');
 const mineflayer = require('mineflayer');
+const cron = require('node-cron');
 
 http.createServer((req, res) => {
   res.write("Bot is alive!");
@@ -97,6 +98,9 @@ function createBot(name) {
     log(name, `[ĐIỂM DANH] Bỏ qua sau ${CONFIG.maxAttempts} lần`);
     isCheckingIn = false;
   }
+
+  // Expose để cron gọi được
+  bot._doCheckIn = doCheckIn;
 
   bot.on('message', (jsonMsg) => {
     const msg = jsonMsg.toString();
@@ -208,6 +212,24 @@ async function startAllBots() {
     await sleep(CONFIG.joinDelay);
   }
   log('SYSTEM', `Đã kích hoạt ${BOT_NAMES.length} bot`);
+
+  // Điểm danh tự động lúc 3:00 sáng mỗi ngày (giờ Việt Nam)
+  cron.schedule('0 3 * * *', () => {
+    log('SYSTEM', '[CRON] 3h sáng - Bắt đầu điểm danh tự động...');
+    for (const name of BOT_NAMES) {
+      const bot = activeBots[name];
+      if (bot && bot._doCheckIn) {
+        const delay = Math.random() * 10000;
+        setTimeout(() => bot._doCheckIn(), delay);
+      } else {
+        log(name, '[CRON] Bot không hoạt động, bỏ qua.');
+      }
+    }
+  }, {
+    timezone: "Asia/Ho_Chi_Minh"
+  });
+
+  log('SYSTEM', '[CRON] Đã đặt lịch điểm danh lúc 3:00 sáng (GMT+7)');
 }
 
 startAllBots();
