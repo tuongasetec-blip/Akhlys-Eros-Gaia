@@ -179,7 +179,6 @@ function createBot(name) {
   });
 
   bot.once('spawn', () => {
-    bot.physics.enabled = false;
     log(name, 'Vào Lobby. Login...');
     setTimeout(() => {
       bot.chat(`/login ${CONFIG.password}`);
