@@ -214,7 +214,7 @@ async function startAllBots() {
   log('SYSTEM', `Đã kích hoạt ${BOT_NAMES.length} bot`);
 
   // Điểm danh tự động lúc 3:00 sáng mỗi ngày (giờ Việt Nam)
-  cron.schedule('0 3 * * *', () => {
+  cron.schedule('0 4 * * *', () => {
     log('SYSTEM', '[CRON] 3h sáng - Bắt đầu điểm danh tự động...');
     for (const name of BOT_NAMES) {
       const bot = activeBots[name];
