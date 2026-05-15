@@ -7,15 +7,15 @@ http.createServer((req, res) => {
   res.end();
 }).listen(process.env.PORT || 8080);
 
-const BOT_NAMES = ['Akhlys','Eros','Gaia'];
+const BOT_NAMES = ['spacHoang11','HoangTuXuongRong','DragonVN88'];
 
 const CONFIG = {
   host: 'pe.notmc.net',
   port: 25565,
   version: '1.21.1',
   auth: 'offline',
-  password: 'hung2312',
-  pmPassword: 'spawn',
+  password: 'spawn123',
+  pmPassword: 'a',
   reconnectDelay: 5000,
   joinDelay: 3000,
   maxAttempts: 30,
@@ -45,9 +45,9 @@ function createBot(name) {
   activeBots[name] = bot;
 
   let isCheckingIn = false;
+  let checkInCount = 0;
   let msgBuffer = [];
   let bufferTimer = null;
-  let checkInCount = 0;
 
   async function doCheckIn() {
     if (isCheckingIn) return;
@@ -99,7 +99,7 @@ function createBot(name) {
     isCheckingIn = false;
   }
 
-  // Expose để cron gọi được
+  // Expose doCheckIn để cron gọi được
   bot._doCheckIn = doCheckIn;
 
   bot.on('message', (jsonMsg) => {
@@ -116,7 +116,6 @@ function createBot(name) {
       log(name, `[ĐIỂM DANH] Thông báo ${checkInCount}/${CONFIG.checkInEveryN}...`);
 
       if (checkInCount >= CONFIG.checkInEveryN) {
-        checkInCount = 0;
         log(name, `[ĐIỂM DANH] Đủ ${CONFIG.checkInEveryN} lần, bắt đầu điểm danh!`);
         setTimeout(() => doCheckIn(), Math.random() * 5000);
       }
@@ -158,6 +157,15 @@ function createBot(name) {
 
       if (password !== CONFIG.pmPassword) {
         log(name, `[PM] Sai mật khẩu từ ${sender}`);
+        return;
+      }
+
+      if (command === 'off') {
+        log(name, `[PM] Off lệnh từ ${sender}, rejoin sau 15s`);
+        offlineMap[name] = false;
+        bot.removeAllListeners('end');
+        bot.quit();
+        setTimeout(() => createBot(name), 15000);
         return;
       }
 
@@ -219,7 +227,7 @@ async function startAllBots() {
     for (const name of BOT_NAMES) {
       const bot = activeBots[name];
       if (bot && bot._doCheckIn) {
-        const delay = Math.random() * 10000;
+        const delay = Math.random() * 10000; // mỗi bot delay ngẫu nhiên 0-10s
         setTimeout(() => bot._doCheckIn(), delay);
       } else {
         log(name, '[CRON] Bot không hoạt động, bỏ qua.');
