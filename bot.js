@@ -20,7 +20,12 @@ const CONFIG = {
   joinDelay: 3000,
   maxAttempts: 30,
   checkInEveryN: 6,
+  teleportAlertId: '<@961411907544305684>',
+  teleportThreshold: 50,   // block
+  posCheckInterval: 1000,  // ms
 };
+
+const TELEPORT_COMMANDS = ['/tpa', '/spawn', '/pwarp', '/warp', '/tp ', '/back', '/home'];
 
 const ALLOWED_USERS = ['Hypnos','GHypnos','Spelas','DreamMask_','Gzues'];
 const activeBots = {};
@@ -49,6 +54,49 @@ function createBot(name) {
   let msgBuffer = [];
   let bufferTimer = null;
 
+  // --- Teleport detection ---
+  let lastPos = null;
+  let pmTeleportActive = false;
+  let posCheckIntervalId = null;
+
+  function startPosTracking() {
+    if (posCheckIntervalId) clearInterval(posCheckIntervalId);
+    lastPos = null;
+
+    posCheckIntervalId = setInterval(() => {
+      if (!bot.entity) return;
+
+      const pos = bot.entity.position;
+      if (!lastPos) {
+        lastPos = pos.clone();
+        return;
+      }
+
+      const dist = pos.distanceTo(lastPos);
+
+      if (dist > CONFIG.teleportThreshold) {
+        if (!pmTeleportActive) {
+          const msg = `${CONFIG.teleportAlertId} [pos]`;
+          log(name, `[TELEPORT DETECT] ${msg}`);
+          bot.chat(msg);
+        } else {
+          log(name, `[TELEPORT DETECT] Dịch chuyển ${Math.round(dist)} block do PM lệnh, bỏ qua`);
+        }
+      }
+
+      lastPos = pos.clone();
+    }, CONFIG.posCheckInterval);
+  }
+
+  function stopPosTracking() {
+    if (posCheckIntervalId) {
+      clearInterval(posCheckIntervalId);
+      posCheckIntervalId = null;
+    }
+    lastPos = null;
+  }
+
+  // --- Check-in ---
   async function doCheckIn() {
     if (isCheckingIn) return;
     isCheckingIn = true;
@@ -99,7 +147,6 @@ function createBot(name) {
     isCheckingIn = false;
   }
 
-  // Expose doCheckIn để cron gọi được
   bot._doCheckIn = doCheckIn;
 
   bot.on('message', (jsonMsg) => {
@@ -185,6 +232,15 @@ function createBot(name) {
         return;
       }
 
+      // Đánh dấu nếu lệnh PM là teleport
+      if (TELEPORT_COMMANDS.some(cmd => command.startsWith(cmd))) {
+        pmTeleportActive = true;
+        log(name, `[PM] Teleport lệnh từ ${sender}: ${command}`);
+        setTimeout(() => {
+          pmTeleportActive = false;
+        }, 10000); // reset flag sau 10s
+      }
+
       log(name, `[PM] Thực thi: ${command}`);
       bot.chat(command);
     }, 300);
@@ -196,11 +252,14 @@ function createBot(name) {
       bot.chat(`/login ${CONFIG.password}`);
       setTimeout(() => {
         bot.chat('/server earth');
+        // Bắt đầu theo dõi vị trí sau khi vào earth
+        setTimeout(() => startPosTracking(), 5000);
       }, 2000);
     }, 2000);
   });
 
   bot.on('end', () => {
+    stopPosTracking();
     bot.removeAllListeners();
     delete activeBots[name];
     const delay = offlineMap[name] ? 60000 : CONFIG.reconnectDelay;
@@ -221,13 +280,12 @@ async function startAllBots() {
   }
   log('SYSTEM', `Đã kích hoạt ${BOT_NAMES.length} bot`);
 
-  // Điểm danh tự động lúc 3:00 sáng mỗi ngày (giờ Việt Nam)
   cron.schedule('0 4 * * *', () => {
     log('SYSTEM', '[CRON] 3h sáng - Bắt đầu điểm danh tự động...');
     for (const name of BOT_NAMES) {
       const bot = activeBots[name];
       if (bot && bot._doCheckIn) {
-        const delay = Math.random() * 10000; // mỗi bot delay ngẫu nhiên 0-10s
+        const delay = Math.random() * 10000;
         setTimeout(() => bot._doCheckIn(), delay);
       } else {
         log(name, '[CRON] Bot không hoạt động, bỏ qua.');
